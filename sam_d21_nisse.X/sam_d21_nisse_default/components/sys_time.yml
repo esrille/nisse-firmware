@@ -1,0 +1,125 @@
+configVersion: 1.0.0
+componentName: sys_time
+coreVersion: 5.8.2
+device: ATSAMD21G18A
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: sys_time
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: core
+  type: package
+  version: v3.15.1
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments:
+    children:
+    - children:
+      - attributes:
+          id: sys_time_TMR_dependency
+        children:
+        - children:
+          - attributes:
+              id: targetComponentID
+            children:
+            - type: Value
+              value: tc3
+            type: String
+          - attributes:
+              id: targetAttachmentID
+            children:
+            - type: Value
+              value: TC3_TMR
+            type: String
+          type: Attributes
+        type: DirectDependency
+      type: Attachments
+    type: sys_time
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: sys_time
+          x: '364'
+          y: '535'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    SYS_TIME_ACHIEVABLE_TICK_RATE_HZ:
+      attributes:
+        id: SYS_TIME_ACHIEVABLE_TICK_RATE_HZ
+      children:
+      - children:
+        - attributes:
+            id: sys_time
+            value: '7314285'
+          type: Dynamic
+        type: Values
+      type: Long
+    SYS_TIME_OPERATING_MODE:
+      attributes:
+        id: SYS_TIME_OPERATING_MODE
+      children:
+      - children:
+        - attributes:
+            id: sys_time
+            value: TICK BASED
+          type: Dynamic
+        type: Values
+      type: Combo
+    SYS_TIME_PLIB:
+      attributes:
+        id: SYS_TIME_PLIB
+      children:
+      - children:
+        - attributes:
+            id: sys_time
+            value: TC3
+          type: Dynamic
+        type: Values
+      type: String
+    SYS_TIME_REMOTE_COMPONENT_ID:
+      attributes:
+        id: SYS_TIME_REMOTE_COMPONENT_ID
+      children:
+      - children:
+        - attributes:
+            id: sys_time
+            value: tc3
+          type: Dynamic
+        type: Values
+      type: String
+    SYS_TIME_TICK_RATE_MS:
+      attributes:
+        id: SYS_TIME_TICK_RATE_MS
+      children:
+      - children:
+        - attributes:
+            id: visible
+          children:
+          - type: Value
+            value: 'true'
+          type: Boolean
+        type: Attributes
+      - children:
+        - attributes:
+            value: '16.0'
+          type: User
+        type: Values
+      type: Float
+    SYS_TIME_USE_SYSTICK:
+      attributes:
+        id: SYS_TIME_USE_SYSTICK
+      children:
+      - children:
+        - attributes:
+            value: 'false'
+          type: User
+        type: Values
+      type: Boolean
+  userData: {}
