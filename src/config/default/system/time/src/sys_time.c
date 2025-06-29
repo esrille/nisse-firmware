@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2025 Esrille Inc.
+ *
+ * This file, reworked by Esrille Inc., is based on sys_time.c originally
+ * provided from Microchip Technology Inc. See the file NOTICE for copying
+ * permission.
+ */
+
 /*******************************************************************************
   Timer System Service Implementation.
 
@@ -587,9 +595,10 @@ uint32_t SYS_TIME_USToCount ( uint32_t us )
     return count;
 }
 
+/* ESRILLE: Round up timer count to meet requested delay */
 uint32_t SYS_TIME_MSToCount ( uint32_t ms )
 {
-    uint32_t count = (uint32_t)(((uint64_t)ms * gSystemCounterObj.hwTimerTickFreq) / 1000UL);
+    uint32_t count = (uint32_t)(((uint64_t) (ms + 1000UL / gSystemCounterObj.hwTimerTickFreq - 1) * gSystemCounterObj.hwTimerTickFreq) / 1000UL);
 
     return count;
 }

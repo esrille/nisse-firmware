@@ -53,9 +53,9 @@
 #include "peripheral/port/plib_port.h"
 #include "peripheral/clock/plib_clock.h"
 #include "peripheral/nvic/plib_nvic.h"
+#include "peripheral/sercom/spi_master/plib_sercom5_spi_master.h"
 #include "usb/usb_chapter_9.h"
 #include "usb/usb_device.h"
-#include "peripheral/sercom/spi_master/plib_sercom5_spi_master.h"
 #include "peripheral/pm/plib_pm.h"
 #include "peripheral/sercom/usart/plib_sercom4_usart.h"
 #include "peripheral/tc/plib_tc3.h"
@@ -134,6 +134,9 @@ extern "C" {
 
 void SYS_Initialize( void *data );
 
+void SYS_Initialize1( void *data );
+void SYS_Initialize2( void *data );
+
 // *****************************************************************************
 /* System Tasks Function
 
@@ -211,7 +214,7 @@ typedef struct
 // *****************************************************************************
 // *****************************************************************************
 
-extern const USB_DEVICE_INIT usbDevInitData; 
+extern const USB_DEVICE_INIT usbDevInitData;
 
 
 

@@ -52,7 +52,7 @@
     extern "C" {
 
 #endif
-// DOM-IGNORE-END  
+// DOM-IGNORE-END
 
 /* MISRA C-2012 Rule 5.4 deviated:10 Deviation record ID -  H3_USB_MISRAC_2012_R_5_4_DR_1 */
 
@@ -209,14 +209,14 @@ typedef enum
     USB_HID_USAGE_ID_BUTTON3,
     USB_HID_USAGE_ID_BUTTON4,
     USB_HID_USAGE_ID_BUTTON5
-            
+
 } USB_HID_BUTTON_ID;
 
 typedef enum
 {
     USB_HID_BUTTON_RELEASED   = 0,
     USB_HID_BUTTON_PRESSED
-            
+
 } USB_HID_BUTTON_STATE;
 
 
@@ -224,7 +224,7 @@ typedef enum
 {
     USB_HID_KEY_RELEASED   = 0,
     USB_HID_KEY_PRESSED
-            
+
 } USB_HID_KEY_EVENT;
 
 typedef struct __attribute__((packed))
@@ -336,7 +336,7 @@ typedef struct
     uint32_t reserved : 1;
     uint32_t isBufferedBytes : 1;
     uint32_t reserved1 : 23;
-    
+
 } USB_HID_INPUT_ITEM_OPTIONAL_DATA;
 
 typedef struct
@@ -351,7 +351,7 @@ typedef struct
     uint32_t isVolatile : 1;
     uint32_t isBufferedBytes : 1;
     uint32_t reserved1 : 23;
-    
+
 } USB_HID_OUTPUT_ITEM_OPTIONAL_DATA;
 
 typedef struct
@@ -366,7 +366,7 @@ typedef struct
     uint32_t isVolatile : 1;
     uint32_t isBufferedBytes : 1;
     uint32_t reserved1 : 23;
-    
+
 } USB_HID_FEATURE_ITEM_OPTIONAL_DATA;
 
 /* MISRAC 2012 deviation block end */
@@ -382,8 +382,8 @@ typedef union
     uint8_t data1Byte[4];
     uint16_t data2Bytes[2];
     uint32_t data4Bytes;
-    
-    USB_HID_INPUT_ITEM_OPTIONAL_DATA inputOptionalData;    
+
+    USB_HID_INPUT_ITEM_OPTIONAL_DATA inputOptionalData;
     USB_HID_OUTPUT_ITEM_OPTIONAL_DATA  outputOptionalData;
     USB_HID_FEATURE_ITEM_OPTIONAL_DATA  featureOptionalData;
     USB_HID_COLLECTION_ITEM_OPTIONAL_DATA  collectionOptionalData;

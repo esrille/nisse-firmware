@@ -33,6 +33,8 @@ extern "C" {
 // *****************************************************************************
 // *****************************************************************************
 
+/* Defines the conversion factor to be multiplied to convert to millisecs */
+#define APP_USB_CONVERT_TO_MILLISECOND  1   // from Full-Speed USB SOF (1kHz)
 
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus

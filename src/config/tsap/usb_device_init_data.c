@@ -52,6 +52,51 @@
 /****************************************************
  * Class specific descriptor - HID Report descriptor
  ****************************************************/
+static const uint8_t hid_rpt2[] =
+{
+    0x05, 0x01, /* Usage Page (Generic Desktop)             */
+    0x09, 0x02, /* Usage (Mouse)                            */
+    0xA1, 0x01, /* Collection (Application)                 */
+    0x09, 0x01, /*  Usage (Pointer)                         */
+    0xA1, 0x00, /*  Collection (Physical)                   */
+    0x05, 0x09, /*      Usage Page (Buttons)                */
+    0x19, 0x01, /*      Usage Minimum (01)                  */
+    0x29, 0x05, /*      Usage Maximum (05)                  */
+    0x15, 0x00, /*      Logical Minimum (0)                 */
+    0x25, 0x01, /*      Logical Maximum (1)                 */
+    0x95, 0x05, /*      Report Count (5)                    */
+    0x75, 0x01, /*      Report Size (1)                     */
+    0x81, 0x02, /*      Input (Data, Variable, Absolute)    */
+    0x95, 0x01, /*      Report Count (1)                    */
+    0x75, 0x03, /*      Report Size (3)                     */
+    0x81, 0x01, /*      Input (Constant)    ;3 bit padding  */
+    0x05, 0x01, /*      Usage Page (Generic Desktop)        */
+    0x09, 0x30, /*      Usage (X)                           */
+    0x09, 0x31, /*      Usage (Y)                           */
+    0x09, 0x38, /*      Usage (Wheel)                       */
+    0x15, 0x81, /*      Logical Minimum (-127)              */
+    0x25, 0x7F, /*      Logical Maximum (127)               */
+    0x75, 0x08, /*      Report Size (8)                     */
+    0x95, 0x03, /*      Report Count (3)                    */
+    0x81, 0x06, /*      Input (Data, Variable, Relative)    */
+    0xC0, 0xC0  /* End Collection,End Collection            */
+};
+
+/**************************************************
+ * USB Device HID Function Init Data
+ **************************************************/
+static const USB_DEVICE_HID_INIT hidInit2 =
+{
+     .hidReportDescriptorSize = sizeof(hid_rpt2),
+     .hidReportDescriptor = (void *)&hid_rpt2,
+     .queueSizeReportReceive = 1,
+     .queueSizeReportSend = 1
+};
+
+
+/****************************************************
+ * Class specific descriptor - HID Report descriptor
+ ****************************************************/
 static const uint8_t hid_rpt1[] =
 {
     0x05, 0x0C,         /* Usage Page (Consumer Devices)    */
@@ -137,8 +182,21 @@ static const USB_DEVICE_HID_INIT hidInit0 =
  **************************************************/
 /* MISRA C-2012 Rule 10.3 deviated:2, 11.8 deviated:6 deviated below. Deviation record ID -
    H3_USB_MISRAC_2012_R_10_3_DR_1 & H3_USB_MISRAC_2012_R_11_8_DR_1*/
-static const USB_DEVICE_FUNCTION_REGISTRATION_TABLE funcRegistrationTable[2] =
+static const USB_DEVICE_FUNCTION_REGISTRATION_TABLE funcRegistrationTable[3] =
 {
+
+    /* HID Function 2 */
+    {
+        .configurationValue = 1,    /* Configuration value */
+        .interfaceNumber = 2,       /* First interfaceNumber of this function */
+        .speed = (USB_SPEED)(USB_SPEED_HIGH|USB_SPEED_FULL),    /* Function Speed */
+        .numberOfInterfaces = 1,    /* Number of interfaces */
+        .funcDriverIndex = 2,  /* Index of HID Function Driver */
+        .driver = (void*)USB_DEVICE_HID_FUNCTION_DRIVER,    /* USB HID function data exposed to device layer */
+        .funcDriverInit = (void*)&hidInit2    /* Function driver init data */
+    },
+
+
 
     /* HID Function 1 */
     {
@@ -203,12 +261,56 @@ static const uint8_t fullSpeedConfigurationDescriptor[]=
 
     0x09,                                                   // Size of this descriptor in bytes
     (uint8_t)USB_DESCRIPTOR_CONFIGURATION,                           // Descriptor Type
-    USB_DEVICE_16bitTo8bitArrange(73),                      //(73 Bytes)Size of the Configuration descriptor
-    2,                                                      // Number of interfaces in this configuration
+    USB_DEVICE_16bitTo8bitArrange(105),                      //(105 Bytes)Size of the Configuration descriptor
+    3,                                                      // Number of interfaces in this configuration
     0x01,                                                   // Index value of this configuration
     0x00,                                                   // Configuration string index
     USB_ATTRIBUTE_DEFAULT | USB_ATTRIBUTE_SELF_POWERED | USB_ATTRIBUTE_REMOTE_WAKEUP, // Attributes
     50,                                                 // Maximum Power: 100mA
+
+    /* Interface Descriptor */
+
+    0x09,                               // Size of this descriptor in bytes
+    USB_DESCRIPTOR_INTERFACE,           // Descriptor Type is Interface descriptor
+    2,                                  // Interface Number
+    0x00,                                  // Alternate Setting Number
+    0x02,                                  // Number of endpoints in this interface
+    USB_HID_CLASS_CODE,                 // Class code
+    (uint8_t)USB_HID_SUBCLASS_CODE_NO_SUBCLASS , // Subclass code
+    (uint8_t)USB_HID_PROTOCOL_CODE_NONE,         // No Protocol
+    0x00,                                  // Interface string index
+
+    /* HID Class-Specific Descriptor */
+
+    0x09,                           // Size of this descriptor in bytes
+    (uint8_t)USB_HID_DESCRIPTOR_TYPES_HID,   // HID descriptor type
+    0x11,0x01,                      // HID Spec Release Number in BCD format (1.11)
+    0x00,                           // Country Code (0x00 for Not supported)
+    1,                              // Number of class descriptors
+    (uint8_t)USB_HID_DESCRIPTOR_TYPES_REPORT,// Report descriptor type
+    USB_DEVICE_16bitTo8bitArrange(sizeof(hid_rpt2)),   // Size of the report descriptor
+
+    /* Endpoint Descriptor */
+
+    0x07,                           // Size of this descriptor in bytes
+    USB_DESCRIPTOR_ENDPOINT,        // Endpoint Descriptor
+    3 | USB_EP_DIRECTION_IN,    // EndpointAddress ( EP3 IN )
+    (uint8_t)USB_TRANSFER_TYPE_INTERRUPT,    // Attributes
+    0x40,0x00,                      // Size
+    0x01,                           // Interval
+
+    /* Endpoint Descriptor */
+
+    0x07,                           // Size of this descriptor in bytes
+    USB_DESCRIPTOR_ENDPOINT,        // Endpoint Descriptor
+    3 | USB_EP_DIRECTION_OUT,   // EndpointAddress ( EP3 OUT )
+    (uint8_t)USB_TRANSFER_TYPE_INTERRUPT,    // Attributes
+    0x40,0x00,                      // size
+    0x01,                           // Interval
+
+
+
+
 
     /* Interface Descriptor */
 
@@ -399,7 +501,7 @@ const USB_DEVICE_INIT usbDevInitData =
 {
     /* Number of function drivers registered to this instance of the
        USB device layer */
-    .registeredFuncCount = 2,
+    .registeredFuncCount = 3,
 
     /* Function driver table registered to this instance of the USB device layer*/
     .registeredFunctions = (USB_DEVICE_FUNCTION_REGISTRATION_TABLE*)funcRegistrationTable,
