@@ -76,6 +76,14 @@ static uint8_t const modKeys[MOD_MAX + 1][MAX_MOD_KEY_NAME] =
     {KEY_X, KEY_S, KEY_ENTER, 0},
     {KEY_C, KEY_ENTER, 0},
     {KEY_S, KEY_ENTER, 0},
+    {KEY_X, KEY_C, KEY_J, KEY_ENTER, 0},
+    {KEY_X, KEY_S, KEY_J, KEY_ENTER, 0},
+    {KEY_C, KEY_J, KEY_ENTER, 0},
+    {KEY_S, KEY_J, KEY_ENTER, 0},
+    {KEY_X, KEY_C, KEY_J, KEY_A, KEY_ENTER, 0},
+    {KEY_X, KEY_S, KEY_J, KEY_A, KEY_ENTER, 0},
+    {KEY_C, KEY_J, KEY_A, KEY_ENTER, 0},
+    {KEY_S, KEY_J, KEY_A, KEY_ENTER, 0},
 };
 
 #define MAX_IME_KEY_NAME    6

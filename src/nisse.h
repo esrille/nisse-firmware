@@ -73,7 +73,7 @@
 #define OS_ALT_SP           7   // Alt-Space
 #define OS_SHIFT_SP         8   // Shift-Space
 #define OS_CTRL_SP          9   // Ctrl-Space
-#define OS_CAPS             10  // Ctrl-Space
+#define OS_CAPS             10  // Caps Lock
 #define OS_MAX              10
 
 #define DELAY_0             0
@@ -88,8 +88,24 @@
 #define MOD_XS              1
 #define MOD_C               2
 #define MOD_S               3
-#define MOD_MAX             3
+#define MOD_XCJ             4
+#define MOD_XSJ             5
+#define MOD_CJ              6
+#define MOD_SJ              7
+#define MOD_XCJA            8   // Apple
+#define MOD_XSJA            9   // Apple
+#define MOD_CJA             10  // Apple
+#define MOD_SJA             11  // Apple
+#define MOD_MAX             11
 #define MOD_DEFAULT         MOD_XC
+
+static inline bool KEYBOARD_IsJapaneseMod(uint8_t layout) {
+    return MOD_XCJ <= layout;
+}
+
+static inline bool KEYBOARD_IsMacMod(uint8_t layout) {
+    return MOD_XCJA <= layout;
+}
 
 #define INDICATOR_LEFT              0   // kana, caps, scroll + tsap + prefix
 #define INDICATOR_CENTER            1   // num, kana, caps + tsap + prefix

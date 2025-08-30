@@ -194,26 +194,35 @@ static const uint16_t ccMap[12] = {
 };
 
 /* modifiers configurations */
-static const uint8_t modMap[4][6] = {
-    {KEY_LEFT_CONTROL, KEY_LEFT_SHIFT, KEY_BACKSPACE, KEY_SPACE, KEY_RIGHT_SHIFT, KEY_RIGHT_CONTROL},   // xc
-    {KEY_LEFT_SHIFT, KEY_LEFT_CONTROL, KEY_BACKSPACE, KEY_SPACE, KEY_RIGHT_CONTROL, KEY_RIGHT_SHIFT},   // xs
-    {KEY_LEFT_CONTROL, KEY_BACKSPACE, KEY_LEFT_SHIFT, KEY_RIGHT_SHIFT, KEY_SPACE, KEY_RIGHT_CONTROL},   // c
-    {KEY_LEFT_SHIFT, KEY_BACKSPACE, KEY_LEFT_CONTROL, KEY_RIGHT_CONTROL, KEY_SPACE, KEY_RIGHT_SHIFT},   // s
+static uint8_t const modMap[4][12] =
+{
+    // 0: -
+    // 1: -
+    // 2: CONTROL
+    // 3: GUI
+    // 4: FN
+    // 5: BACKSPACE, SPACE
+    // 6: SHIFT
+    // 7: ALT
+    {0, 1, 2, 3, 4, 5, 6, 7},   // XC
+    {0, 1, 6, 3, 4, 5, 2, 7},   // XS
+    {0, 1, 2, 3, 4, 6, 5, 7},   // C
+    {0, 1, 6, 3, 4, 2, 5, 7},   // S
 };
 
 /* dual role FN keys */
 static const FN_KEY imeKeys[OS_MAX + 1][2] = {
     {{0, 0} , {0, 0}},   // OS_PC
     {{0, KEY_LANG2}, {0, KEY_LANG1}},    // OS_MAC
-    {{MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_BACKSPACE }, {MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_SPACE}}, // OS_104A
-    {{MOD_ALT_LEFT, KEY_GRAVE }, {MOD_ALT_LEFT, KEY_GRAVE}}, // OS_104B
-    {{0, KEY_INTERNATIONAL5 }, {0, KEY_INTERNATIONAL4}}, // OS_109
-    {{MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_INTERNATIONAL5 }, {MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_INTERNATIONAL4}}, // OS_109A
-    {{0, KEY_GRAVE }, {0, KEY_GRAVE}}, // OS_109B
-    {{MOD_ALT_LEFT, KEY_SPACE }, {MOD_ALT_LEFT, KEY_SPACE}}, // OS_ALT_SP
-    {{MOD_SHIFT_LEFT, KEY_SPACE }, {MOD_SHIFT_LEFT, KEY_SPACE}}, // OS_SHIFT_SP
-    {{MOD_CONTROL_LEFT, KEY_SPACE }, {MOD_CONTROL_LEFT, KEY_SPACE}}, // OS_CTRL_SP
-    {{0, KEY_CAPS_LOCK }, {0, KEY_CAPS_LOCK}}, // OS_CAPS
+    {{MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_BACKSPACE}, {MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_SPACE}}, // OS_104A
+    {{MOD_ALT_LEFT, KEY_GRAVE}, {MOD_ALT_LEFT, KEY_GRAVE}}, // OS_104B
+    {{0, KEY_INTERNATIONAL5}, {0, KEY_INTERNATIONAL4}}, // OS_109
+    {{MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_INTERNATIONAL5}, {MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_INTERNATIONAL4}}, // OS_109A
+    {{0, KEY_GRAVE}, {0, KEY_GRAVE}}, // OS_109B
+    {{MOD_ALT_LEFT, KEY_SPACE}, {MOD_ALT_LEFT, KEY_SPACE}}, // OS_ALT_SP
+    {{MOD_SHIFT_LEFT, KEY_SPACE}, {MOD_SHIFT_LEFT, KEY_SPACE}}, // OS_SHIFT_SP
+    {{MOD_CONTROL_LEFT, KEY_SPACE}, {MOD_CONTROL_LEFT, KEY_SPACE}}, // OS_CTRL_SP
+    {{0, KEY_CAPS_LOCK}, {0, KEY_CAPS_LOCK}}, // OS_CAPS
 };
 
 #define DELAY_SLOTS (DELAY_MAX +  2)
@@ -407,15 +416,15 @@ static bool IsShiftSwitch(int row, int column)
     }
     const uint8_t mod = PROFILE_Read(EEPROM_MOD) % 4;
     switch (mod) {
-    case MOD_XC:
-        return row == 6;
-    case MOD_XS:
+    case MOD_S:
         return row == 2;
     case MOD_C:
         return row == 5;
-    case MOD_S:
-    default:
+    case MOD_XS:
         return row == 2;
+    case MOD_XC:
+    default:
+        return row == 6;
     }
 }
 
@@ -473,44 +482,61 @@ static bool IsFnLayer(void)
     return KEYBOARD_IsPressed(4, 0) || KEYBOARD_IsPressed(4, 11);
 }
 
-static void ToggleKanaMode(void)
+int8_t KEYBOARD_GetKeycode(int row, int col)
 {
-    uint8_t os = PROFILE_Read(EEPROM_OS);
+    const uint8_t (*const matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
+    uint8_t layout = PROFILE_Read(EEPROM_MOD);
+    uint8_t keycode;
 
-    if (os == OS_CAPS && KEYBOARD_IsMake(1, 0)) {
-        controller.kana ^= true;
+    if (col == 0 || col == MATRIX_COLS - 1) {
+        keycode = matrix[modMap[layout % 4][row]][col];
+    } else {
+        keycode = matrix[row][col];
     }
-}
-
-uint8_t KEYBOARD_ApplyModifiersMap(uint8_t keycode)
-{
-    for (unsigned int i = 0; i < (sizeof modMap[0]); ++i) {
-        if (modMap[0][i] == keycode) {
-            const uint8_t mod = PROFILE_Read(EEPROM_MOD) % 4;
-            return modMap[mod][i];
+    if (KEYBOARD_IsMacMod(layout)) {
+        switch (keycode) {
+        case KEY_RIGHT_ALT:
+            keycode = KEY_LANG1;
+            break;
+        case KEY_LEFT_ALT:
+            keycode = KEY_LANG2;
+            break;
+        case KEY_APPLICATION:
+            keycode = KEY_LEFT_ALT;
+            break;
+        default:
+            break;
+        }
+    } else if (KEYBOARD_IsJapaneseMod(layout)) {
+        switch (keycode) {
+        case KEY_RIGHT_ALT:
+            keycode = KEY_LANG1;
+            break;
+        case KEY_LEFT_ALT:
+            keycode = KEY_LANG2;
+            break;
+        case KEY_LEFT_GUI:
+            keycode = KEY_LEFT_ALT;
+            break;
+        default:
+            break;
         }
     }
     return keycode;
 }
 
-int8_t KEYBOARD_GetNormalKey(int row, int column)
+static uint8_t GetModifiers(void)
 {
-    const uint8_t (*matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
-    return matrix[row][column];
-}
-
-static uint8_t GetModifiers(void) {
-    const uint8_t (*matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
     uint8_t mod = 0;
+
     for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int column = 0; column < MATRIX_COLS; column += 11) {
-            if (KEYBOARD_IsPressed(row, column)) {
-                uint8_t keycode = matrix[row][column];
-                keycode = KEYBOARD_ApplyModifiersMap(keycode);
+        for (int col = 0; col < MATRIX_COLS; col += MATRIX_COLS - 1) {
+            if (KEYBOARD_IsPressed(row, col)) {
+                uint8_t keycode = KEYBOARD_GetKeycode(row, col);
                 if (KEYBOARD_IsModifier(keycode)) {
                     uint8_t bit = 1u << (keycode - KEY_LEFT_CONTROL);
                     mod |= bit;
-                    if (IsShiftSwitch(row, column) && KEYBOARD_IsMake(row, column)) {
+                    if ((bit & MOD_SHIFT) && KEYBOARD_IsMake(row, col)) {
                         controller.prefix ^= bit;
                     }
                 }
@@ -595,23 +621,21 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         return XMIT_NORMAL;
     }
 
-    ToggleKanaMode();
-
     if (!controller.kana || (mod & (MOD_CONTROL | MOD_ALT | MOD_GUI)) || PROFILE_Read(EEPROM_KANA) == KANA_ROMAJI) {
         // Normal layer
-        for (int i = 0; i < MATRIX_ROWS; i++) {
-            for (int j = 0; j < MATRIX_COLS; j++) {
-                if (KEYBOARD_IsPressed(i, j)) {
+        for (int row = 0; row < MATRIX_ROWS; row++) {
+            for (int col = 0; col < MATRIX_COLS; col++) {
+                if (KEYBOARD_IsPressed(row, col)) {
                     uint8_t keycode = 0;
                     if (controller.leds & LED_NUM_LOCK_BIT) {
-                        keycode = marixNumLock[i][j];
+                        keycode = marixNumLock[row][col];
                     }
                     if (!keycode) {
-                        keycode = matrix[i][j];
+                        keycode = KEYBOARD_GetKeycode(row, col);
                     }
-                    if (!keycode)
+                    if (!keycode) {
                         continue;
-                    keycode = KEYBOARD_ApplyModifiersMap(keycode);
+                    }
                     if (KEYBOARD_IsModifier(keycode)) {
                         buf[0] |= 1u << (keycode - KEY_LEFT_CONTROL);
                     } else if (currentReportByte < bufLen) {
@@ -631,20 +655,6 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         }
     }
 
-    // Check dual role FN keys
-    if (controller.dualRoleFN) {
-        if (!buf[0] && !buf[2]) {
-            uint8_t os = PROFILE_Read(EEPROM_OS);
-            const FN_KEY* fn = &imeKeys[os][(controller.dualRoleFN & 1) ? 0 : 1];
-            buf[0] = fn->modifiers;
-            buf[2] = fn->keycode;
-            if (os != OS_PC) {
-                controller.kana = (controller.dualRoleFN & 2);
-            }
-        }
-        controller.dualRoleFN = 0;
-    }
-
     // Check Shift-0 in JIS keyboard
     uint8_t baseLayer = PROFILE_Read(EEPROM_BASE);
     uint8_t* zero = memchr(buf + 2, KEY_0, 6);
@@ -652,7 +662,16 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         *zero = KEY_INTERNATIONAL1;
     }
 
+    // Check dual role FN keys for IME on/off
+    if (controller.dualRoleFN) {
+        if (PROFILE_Read(EEPROM_OS) != OS_PC && !KEYBOARD_IsJapaneseMod(PROFILE_Read(EEPROM_MOD)) && !buf[0] && !buf[2]) {
+            buf[2] = (controller.dualRoleFN & 1) ? KEY_LANG2 : KEY_LANG1;
+        }
+        controller.dualRoleFN = 0;
+    }
+
     if (buf[2]) {
+        // Reset prefix shift
         controller.prefix = 0;
     }
 
@@ -758,6 +777,25 @@ bool KEYBOARD_GetMacroReport(uint8_t* preport) {
     return true;
 }
 
+static void ToggleKanaMode(uint8_t* preport)
+{
+    const uint8_t lang_keys[2] = { KEY_LANG2, KEY_LANG1 };
+    uint8_t os = PROFILE_Read(EEPROM_OS);
+
+    if (os == OS_PC) {
+        return;
+    }
+    for (int i = 0; i < 2; ++i) {
+        uint8_t* lang = memchr(preport + 2, lang_keys[i], 6);
+        if (lang) {
+            controller.kana = (i == 1);
+            const FN_KEY* fn = &imeKeys[os][i];
+            *lang = fn->keycode;
+            preport[0] |= fn->modifiers;
+        }
+    }
+}
+
 bool KEYBOARD_GetReport(uint8_t* preport)
 {
     if (controller.xmit == XMIT_IN_ORDER) {
@@ -785,6 +823,7 @@ bool KEYBOARD_GetReport(uint8_t* preport)
     if (memcmp(controller.reportPrev, controller.report, KEYBOARD_REPORT_LEN)) {
         memmove(controller.reportPrev, controller.report, KEYBOARD_REPORT_LEN);
         memmove(preport, controller.report, KEYBOARD_REPORT_LEN);
+        ToggleKanaMode(preport);
         return true;
     }
     return false;

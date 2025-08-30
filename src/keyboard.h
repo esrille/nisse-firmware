@@ -539,13 +539,11 @@ void KEYBOARD_SetLED(uint8_t led, bool on);
 void KEYBOARD_SetLEDs(uint8_t bits);
 void KEYBOARD_UpdateLEDs(void);
 
-int8_t KEYBOARD_GetNormalKey(int row, int column);
+int8_t KEYBOARD_GetKeycode(int row, int column);
 bool KEYBOARD_IsPressed(int row, int col);
 bool KEYBOARD_IsRawKeyPressed(uint8_t key);
 bool KEYBOARD_IsKeyPressed(uint8_t key);
 bool KEYBOARD_IsMake(int row, int col);
-
-uint8_t KEYBOARD_ApplyModifiersMap(uint8_t keycode);
 
 bool KEYBOARD_GetReport(uint8_t* preport);
 int8_t KEYBOARD_GetFnReport(uint8_t keycode);

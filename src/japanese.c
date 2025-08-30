@@ -443,30 +443,30 @@ static int8_t ProcessKana(const uint8_t mod,
     int8_t xmit = XMIT_NONE;
 
     for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int column = 0; column < MATRIX_COLS; column++) {
-            if (!KEYBOARD_IsMake(row, column)) {
+        for (int col = 0; col < MATRIX_COLS; col++) {
+            if (!KEYBOARD_IsMake(row, col)) {
                 continue;
             }
             if (mod & MOD_SHIFT_LEFT)
-                roma = left[row][column];
+                roma = left[row][col];
             else if (mod & MOD_SHIFT_RIGHT)
-                roma = right[row][column];
+                roma = right[row][col];
             else
-                roma = normal[row][column];
+                roma = normal[row][col];
             if (roma) {
                 ProcessRomaji(roma, a);
             } else {
-                uint8_t key = KEYBOARD_GetNormalKey(row, column);
-                key = KEYBOARD_ApplyModifiersMap(key);
+                uint8_t keycode = KEYBOARD_GetKeycode(row, col);
                 int i = 0;
-                if (!KEYBOARD_IsModifier(key)) {
+                if (!KEYBOARD_IsModifier(keycode)) {
                     if (mod & MOD_SHIFT) {
                         a[i++] = KEY_LEFT_SHIFT;
                     }
-                    a[i++] = key;
+                    a[i++] = keycode;
                 }
-                while (i < 3)
+                while (i < 3) {
                     a[i++] = 0;
+                }
             }
             for (int i = 0; i < 3 && a[i]; ++i) {
                 uint8_t key = a[i];
