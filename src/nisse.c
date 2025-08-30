@@ -779,7 +779,10 @@ bool KEYBOARD_GetMacroReport(uint8_t* preport) {
 
 static void ToggleKanaMode(uint8_t* preport)
 {
-    const uint8_t lang_keys[2] = { KEY_LANG2, KEY_LANG1 };
+    const uint8_t lang_keys[2] = {
+        KEY_LANG2,  // off
+        KEY_LANG1   // on
+    };
     uint8_t os = PROFILE_Read(EEPROM_OS);
 
     if (os == OS_PC) {
@@ -787,11 +790,22 @@ static void ToggleKanaMode(uint8_t* preport)
     }
     for (int i = 0; i < 2; ++i) {
         uint8_t* lang = memchr(preport + 2, lang_keys[i], 6);
-        if (lang) {
-            controller.kana = (i == 1);
-            const FN_KEY* fn = &imeKeys[os][i];
+        if (!lang) {
+            continue;
+        }
+        controller.kana = (i == 1);
+        const FN_KEY* fn = &imeKeys[os][i];
+        if (os != OS_CAPS) {
             *lang = fn->keycode;
             preport[0] |= fn->modifiers;
+            continue;
+        }
+        // OS_CAPS special handling
+        bool caps_on = (controller.leds & LED_CAPS_LOCK_BIT) != 0;
+        if ((i == 0 && caps_on) || (i == 1 && !caps_on)) {
+            *lang = KEY_CAPS_LOCK;
+        } else {
+            memmove(lang, lang + 1, 7 - (lang - preport));
         }
     }
 }
