@@ -416,7 +416,7 @@ static void ProcessRomaji(uint8_t roma, uint8_t a[3]) {
         for (i = 0; i < 3; ++i) {
             uint8_t key = c[i];
             if (IsJP()) {
-                for (int j = 0; i < (sizeof ansiToJIS / sizeof ansiToJIS[0]); ++i) {
+                for (int j = 0; j < (sizeof ansiToJIS / sizeof ansiToJIS[0]); ++j) {
                     if (ansiToJIS[j][0] == key) {
                         key = ansiToJIS[j][1];
                         break;
