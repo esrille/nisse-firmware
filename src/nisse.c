@@ -55,7 +55,7 @@ static const uint8_t marixNumLock[MATRIX_ROWS][MATRIX_COLS] = {
     {0, 0, 0, 0, 0, 0, KEY_CALC, KEY_TAB, KEYPAD_DIVIDE, KEYPAD_MULTIPLY, KEY_BACKSPACE, 0},
     {0, 0, 0, 0, 0, 0, 0, KEYPAD_7, KEYPAD_8, KEYPAD_9, KEYPAD_SUBTRACT, KEYPAD_0},
     {0, 0, 0, 0, 0, 0, 0, KEYPAD_4, KEYPAD_5, KEYPAD_6, KEYPAD_ADD, 0},
-    {0, 0, 0, 0, 0, 0, 0, KEYPAD_1, KEYPAD_2, KEYPAD_3, KEY_ENTER, 0},
+    {0, 0, 0, 0, 0, 0, 0, KEYPAD_1, KEYPAD_2, KEYPAD_3, KEYPAD_ENTER, 0},
 };
 
 // An unused key position in matrixAnsi
@@ -482,11 +482,25 @@ static bool IsFnLayer(void)
     return KEYBOARD_IsPressed(4, 0) || KEYBOARD_IsPressed(4, 11);
 }
 
+int8_t KEYBOARD_Get10KeyKeycode(int row, int col)
+{
+    if (!(controller.leds & LED_NUM_LOCK_BIT)) {
+        return 0;
+    }
+    return marixNumLock[row][col];
+}
+
 int8_t KEYBOARD_GetKeycode(int row, int col)
 {
     const uint8_t (*const matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
     uint8_t layout = PROFILE_Read(EEPROM_MOD);
     uint8_t keycode;
+
+    // Check the 10 keys before others
+    keycode = KEYBOARD_Get10KeyKeycode(row, col);
+    if (keycode) {
+        return keycode;
+    }
 
     if (col == 0 || col == MATRIX_COLS - 1) {
         keycode = matrix[modMap[layout % 4][row]][col];
@@ -529,7 +543,7 @@ static uint8_t GetModifiers(void)
 {
     uint8_t mod = 0;
 
-    for (int row = 0; row < MATRIX_ROWS; row++) {
+    for (int row = 0; row < MATRIX_ROWS; ++row) {
         for (int col = 0; col < MATRIX_COLS; col += MATRIX_COLS - 1) {
             if (KEYBOARD_IsPressed(row, col)) {
                 uint8_t keycode = KEYBOARD_GetKeycode(row, col);
@@ -623,24 +637,21 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
 
     if (!controller.kana || (mod & (MOD_CONTROL | MOD_ALT | MOD_GUI)) || PROFILE_Read(EEPROM_KANA) == KANA_ROMAJI) {
         // Normal layer
-        for (int row = 0; row < MATRIX_ROWS; row++) {
-            for (int col = 0; col < MATRIX_COLS; col++) {
-                if (KEYBOARD_IsPressed(row, col)) {
-                    uint8_t keycode = 0;
-                    if (controller.leds & LED_NUM_LOCK_BIT) {
-                        keycode = marixNumLock[row][col];
-                    }
-                    if (!keycode) {
-                        keycode = KEYBOARD_GetKeycode(row, col);
-                    }
-                    if (!keycode) {
-                        continue;
-                    }
-                    if (KEYBOARD_IsModifier(keycode)) {
-                        buf[0] |= 1u << (keycode - KEY_LEFT_CONTROL);
-                    } else if (currentReportByte < bufLen) {
-                        buf[currentReportByte++] = keycode;
-                    }
+        for (int row = 0; row < MATRIX_ROWS; ++row) {
+            for (int col = 0; col < MATRIX_COLS; ++col) {
+                uint8_t keycode = 0;
+
+                if (!KEYBOARD_IsPressed(row, col)) {
+                    continue;
+                }
+                keycode = KEYBOARD_GetKeycode(row, col);
+                if (!keycode) {
+                    continue;
+                }
+                if (KEYBOARD_IsModifier(keycode)) {
+                    buf[0] |= 1u << (keycode - KEY_LEFT_CONTROL);
+                } else if (currentReportByte < bufLen) {
+                    buf[currentReportByte++] = keycode;
                 }
             }
         }
@@ -648,10 +659,20 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         if (PROFILE_Read(EEPROM_PREFIX)) {
             mod |= controller.prefix;
         }
-        if (KEYBOARD_GetKanaReport(mod) == XMIT_MACRO) {
+        int8_t xmit = KEYBOARD_GetKanaReport(buf, bufLen, mod);
+        switch (xmit) {
+        case XMIT_MACRO:
             controller.prefix = 0;
             MACRO_Begin(MAX_MACRO_SIZE);
             return XMIT_IN_ORDER;
+        case XMIT_NORMAL:
+            while (currentReportByte < bufLen && buf[currentReportByte]) {
+                ++currentReportByte;
+            }
+            break;
+        default:
+            buf[0] &= ~MOD_SHIFT;
+            break;
         }
     }
 

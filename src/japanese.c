@@ -369,11 +369,6 @@ static const uint8_t dakuonTo[] = { KEY_G, KEY_Z, KEY_D, KEY_B };
 static const uint8_t kogakiFrom[] = { KEY_A, KEY_I, KEY_U, KEY_E, KEY_O };
 // static const uint8_t kogaki_to[] = { KEY_X, KEY_X, KEY_X, KEY_X, KEY_X };
 
-static bool IsJP(void) {
-    uint8_t baseLayer = PROFILE_Read(EEPROM_BASE);
-    return baseLayer == BASE_JIS || baseLayer == BASE_NICOLA_F;
-}
-
 static void ProcessRomaji(uint8_t roma, uint8_t a[3]) {
     const uint8_t* c;
     uint8_t i;
@@ -413,9 +408,10 @@ static void ProcessRomaji(uint8_t roma, uint8_t a[3]) {
             c = msSet[i];
             break;
         }
+        uint8_t layout = PROFILE_Read(EEPROM_BASE);
         for (i = 0; i < 3; ++i) {
             uint8_t key = c[i];
-            if (IsJP()) {
+            if (KEYBOARD_IsJapanese(layout)) {
                 for (int j = 0; j < (sizeof ansiToJIS / sizeof ansiToJIS[0]); ++j) {
                     if (ansiToJIS[j][0] == key) {
                         key = ansiToJIS[j][1];
@@ -432,21 +428,35 @@ static void ProcessRomaji(uint8_t roma, uint8_t a[3]) {
 
 static uint8_t last[3];
 
-// Assumptions: Control and Alt keys are not pressed.
-// Minimalism: No auto repeat support.
-static int8_t ProcessKana(const uint8_t mod,
+static int8_t ProcessKana(uint8_t *buf, size_t bufLen,
+                          const uint8_t mod,
                           const uint8_t normal[MATRIX_ROWS][MATRIX_COLS],
                           const uint8_t left[MATRIX_ROWS][MATRIX_COLS],
-                          const uint8_t right[MATRIX_ROWS][MATRIX_COLS]) {
+                          const uint8_t right[MATRIX_ROWS][MATRIX_COLS])
+{
     uint8_t roma;
-    uint8_t a[3];
     int8_t xmit = XMIT_NONE;
+    uint8_t kana[6];
+    int currentKana = 0;
+    int currentAscii = 2;
+    uint8_t keycode;
 
-    for (int row = 0; row < MATRIX_ROWS; row++) {
-        for (int col = 0; col < MATRIX_COLS; col++) {
-            if (!KEYBOARD_IsMake(row, col)) {
+    // Scan the keyboard matrix to check if any Kana key is pressed.
+    memset(buf, 0, bufLen);
+    memset(kana, 0, sizeof kana);
+    for (int row = 0; row < MATRIX_ROWS; ++row) {
+        for (int col = 0; col < MATRIX_COLS; ++col) {
+            if (!KEYBOARD_IsPressed(row, col)) {
                 continue;
             }
+            keycode = KEYBOARD_Get10KeyKeycode(row, col);
+            if (keycode) {
+                if (currentAscii < bufLen) {
+                    buf[currentAscii++] = keycode;
+                }
+                continue;
+            }
+            roma = 0;
             if (mod & MOD_SHIFT_LEFT)
                 roma = left[row][col];
             else if (mod & MOD_SHIFT_RIGHT)
@@ -454,80 +464,108 @@ static int8_t ProcessKana(const uint8_t mod,
             else
                 roma = normal[row][col];
             if (roma) {
-                ProcessRomaji(roma, a);
-            } else {
-                uint8_t keycode = KEYBOARD_GetKeycode(row, col);
-                int i = 0;
-                if (!KEYBOARD_IsModifier(keycode)) {
-                    if (mod & MOD_SHIFT) {
-                        a[i++] = KEY_LEFT_SHIFT;
-                    }
-                    a[i++] = keycode;
+                if (KEYBOARD_IsMake(row, col) && currentKana < sizeof kana) {
+                    kana[currentKana++] = roma;
                 }
-                while (i < 3) {
-                    a[i++] = 0;
+            } else {
+                keycode = KEYBOARD_GetKeycode(row, col);
+                if (!keycode) {
+                    continue;
+                }
+                if (KEYBOARD_IsModifier(keycode)) {
+                    buf[0] |= 1u << (keycode - KEY_LEFT_CONTROL);
+                } else if (currentAscii < bufLen) {
+                    buf[currentAscii++] = keycode;
                 }
             }
-            for (int i = 0; i < 3 && a[i]; ++i) {
-                uint8_t key = a[i];
-                switch (key) {
-                case KEY_DAKUTEN:
-                    if (last[0]) {
-                        const uint8_t* dakuon;
-                        if ((dakuon = memchr(dakuonFrom, last[0], sizeof dakuonFrom))) {
-                            xmit = XMIT_MACRO;
-                            MACRO_Put(KEY_BACKSPACE);
-                            MACRO_Put(dakuonTo[dakuon - dakuonFrom]);
-                            MACRO_Put(last[1]);
-                        } else if ((dakuon = memchr(kogakiFrom, last[0], sizeof kogakiFrom))) {
-                            xmit = XMIT_MACRO;
-                            MACRO_Put(KEY_BACKSPACE);
-                            MACRO_Put(KEY_X);
-                            MACRO_Put(last[0]);
-                        } else if (last[0] == KEY_Y && (dakuon = memchr(kogakiFrom, last[1], sizeof kogakiFrom))) {
-                            xmit = XMIT_MACRO;
-                            MACRO_Put(KEY_BACKSPACE);
-                            MACRO_Put(KEY_X);
-                            MACRO_Put(KEY_Y);
-                            MACRO_Put(last[1]);
-                        }
-                    }
-                    break;
-                case KEY_HANDAKU:
-                    if (last[0] == KEY_H) {
+        }
+    }
+
+    // If no Kana keys were pressed, return the normal keyboard state.
+    if (currentKana == 0) {
+        if (2 < currentAscii) {
+            memset(last, 0, 3);
+            return XMIT_NORMAL;
+        }
+        return XMIT_NONE;
+    }
+
+    for (int i = 2; i < currentAscii; ++i) {
+        keycode = buf[i];
+        if (!KEYBOARD_IsModifier(keycode)) {
+            if (mod & MOD_SHIFT) {
+                MACRO_Put(KEY_LEFT_SHIFT);
+            }
+            MACRO_Put(keycode);
+        }
+    }
+
+    // Convert Kana into Romaji
+    for (int i = 0; i < currentKana; ++i) {
+        uint8_t codes[3];
+
+        ProcessRomaji(kana[i], codes);
+        for (int j = 0; j < 3 && codes[j]; ++j) {
+            keycode = codes[j];
+            switch (keycode) {
+            case KEY_DAKUTEN:
+                if (last[0]) {
+                    const uint8_t* dakuon;
+                    if ((dakuon = memchr(dakuonFrom, last[0], sizeof dakuonFrom))) {
                         xmit = XMIT_MACRO;
                         MACRO_Put(KEY_BACKSPACE);
-                        MACRO_Put(KEY_P);
+                        MACRO_Put(dakuonTo[dakuon - dakuonFrom]);
+                        MACRO_Put(last[1]);
+                    } else if ((dakuon = memchr(kogakiFrom, last[0], sizeof kogakiFrom))) {
+                        xmit = XMIT_MACRO;
+                        MACRO_Put(KEY_BACKSPACE);
+                        MACRO_Put(KEY_X);
+                        MACRO_Put(last[0]);
+                    } else if (last[0] == KEY_Y && (dakuon = memchr(kogakiFrom, last[1], sizeof kogakiFrom))) {
+                        xmit = XMIT_MACRO;
+                        MACRO_Put(KEY_BACKSPACE);
+                        MACRO_Put(KEY_X);
+                        MACRO_Put(KEY_Y);
                         MACRO_Put(last[1]);
                     }
-                    break;
-                default:
-                    xmit = XMIT_MACRO;
-                    MACRO_Put(key);
-                    break;
                 }
+                break;
+            case KEY_HANDAKU:
+                if (last[0] == KEY_H) {
+                    xmit = XMIT_MACRO;
+                    MACRO_Put(KEY_BACKSPACE);
+                    MACRO_Put(KEY_P);
+                    MACRO_Put(last[1]);
+                }
+                break;
+            default:
+                xmit = XMIT_MACRO;
+                MACRO_Put(keycode);
+                break;
             }
-            if (a[0])
-                memcpy(last, a, 3);
+        }
+        if (codes[0]) {
+            memcpy(last, codes, 3);
         }
     }
     return xmit;
 }
 
-int8_t KEYBOARD_GetKanaReport(const uint8_t mod) {
+int8_t KEYBOARD_GetKanaReport(uint8_t *buf, size_t bufLen, const uint8_t mod)
+{
     switch (PROFILE_Read(EEPROM_KANA)) {
     case KANA_NICOLA:
-        return ProcessKana(mod, matrixNicola, matrixNicolaLeft, matrixNicolaRight);
+        return ProcessKana(buf, bufLen, mod, matrixNicola, matrixNicolaLeft, matrixNicolaRight);
     case KANA_TRON:
-        return ProcessKana(mod, matrixTron, matrixTronLeft, matrixTronRight);
+        return ProcessKana(buf, bufLen, mod, matrixTron, matrixTronLeft, matrixTronRight);
     case KANA_STICKNEY:
-        return ProcessKana(mod, matrixStickney, matrixStickneyShift, matrixStickneyShift);
+        return ProcessKana(buf, bufLen, mod, matrixStickney, matrixStickneyShift, matrixStickneyShift);
     case KANA_X6004:
-        return ProcessKana(mod, matrixX6004, matrixX6004Shift, matrixX6004Shift);
+        return ProcessKana(buf, bufLen, mod, matrixX6004, matrixX6004Shift, matrixX6004Shift);
     case KANA_MTYPE:
-        return ProcessKana(mod, matrixMtype, matrixMtypeShift, matrixMtypeShift);
+        return ProcessKana(buf, bufLen, mod, matrixMtype, matrixMtypeShift, matrixMtypeShift);
     case KANA_NEW_STICKNEY:
-        return ProcessKana(mod, matrixNewStickney, matrixNewStickneyShift, matrixNewStickneyShift);
+        return ProcessKana(buf, bufLen, mod, matrixNewStickney, matrixNewStickneyShift, matrixNewStickneyShift);
     default:
         return XMIT_NONE;
     }

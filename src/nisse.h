@@ -54,6 +54,10 @@
 #define BASE_COLEMAK_DHM    5
 #define BASE_MAX            5
 
+static inline bool KEYBOARD_IsJapanese(uint8_t layout) {
+    return layout == BASE_JIS || layout == BASE_NICOLA_F;
+}
+
 #define KANA_ROMAJI         0
 #define KANA_NICOLA         1
 #define KANA_TRON           2
@@ -99,12 +103,12 @@
 #define MOD_MAX             11
 #define MOD_DEFAULT         MOD_XC
 
-static inline bool KEYBOARD_IsJapaneseMod(uint8_t layout) {
-    return MOD_XCJ <= layout;
+static inline bool KEYBOARD_IsJapaneseMod(uint8_t mod) {
+    return MOD_XCJ <= mod;
 }
 
-static inline bool KEYBOARD_IsMacMod(uint8_t layout) {
-    return MOD_XCJA <= layout;
+static inline bool KEYBOARD_IsMacMod(uint8_t mod) {
+    return MOD_XCJA <= mod;
 }
 
 #define INDICATOR_LEFT              0   // kana, caps, scroll + tsap + prefix
