@@ -482,6 +482,13 @@ static bool IsFnLayer(void)
     return KEYBOARD_IsPressed(4, 0) || KEYBOARD_IsPressed(4, 11);
 }
 
+static bool IsFnShiftLayer(void)
+{
+    return KEYBOARD_IsPressed(2, 0) || KEYBOARD_IsPressed(2, 11) ||
+           KEYBOARD_IsPressed(5, 0) || KEYBOARD_IsPressed(5, 11) ||
+           KEYBOARD_IsPressed(6, 0) || KEYBOARD_IsPressed(6, 11);
+}
+
 int8_t KEYBOARD_Get10KeyKeycode(int row, int col)
 {
     if (!(controller.leds & LED_NUM_LOCK_BIT)) {
@@ -589,7 +596,7 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
                             buf[currentReportByte++] = matrixFN[i][j].keycode;
                         }
                     } else if (KEY_F1 <= keycode && keycode <= KEY_F12) {
-                        if ((mod & MOD_SHIFT) && KEY_F1 <= keycode && keycode <= KEY_F4) {
+                        if (IsFnShiftLayer() && KEY_F1 <= keycode && keycode <= KEY_F4) {
                             uint8_t profile = 0;
                             if (keycode < KEY_F4) {
                                 profile = (keycode - KEY_F1) + 1;
