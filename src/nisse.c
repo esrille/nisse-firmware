@@ -160,7 +160,7 @@ static const FN_KEY matrixFN[MATRIX_ROWS][MATRIX_COLS] = {
     {{/*caps*/ 0, KEY_DELETE}, {}, {}, {}, {}, {},
      {}, {}, {}, {}, {}, {/*'*/ 0, KEYPAD_NUM_LOCK}},
     {{}, {/*]*/ MOD_CONTROL_LEFT | MOD_SHIFT_LEFT, KEY_Z}, {}, {}, {}, {},
-     {}, {}, {}, {}, {/*-*/ 0, KEY_PRINT_SCREEN}, {}},
+     {/*app*/ 0, KEY_CAPS_LOCK}, {}, {}, {}, {/*-*/ 0, KEY_PRINT_SCREEN}, {}},
     {{}, {/*`*/ 0, KEY_INSERT}, {}, {}, {}, {},
      {}, {}, {}, {}, {/*\*/ 0, KEY_SCROLL_LOCK}, {}},
     {{}, {}, {}, {}, {}, {},
@@ -170,7 +170,7 @@ static const FN_KEY matrixFN[MATRIX_ROWS][MATRIX_COLS] = {
     {{}, {}, {}, {/*d*/ 0, KEY_PAGE_DOWN}, {}, {},
      {/*h*/ 0, KEY_HOME}, {/*j*/ 0, KEY_LEFT_ARROW}, {/*k*/ 0, KEY_DOWN_ARROW}, {/*l*/ 0, KEY_RIGHT_ARROW}, {/*;*/ 0, KEY_END}, {}},
     {{}, {}, {}, {}, {}, {},
-     {}, {}, {}, {}, {}, {}}
+     {}, {/*m*/ MOD_SHIFT_LEFT, KEY_LEFT_ARROW}, {/*,*/ MOD_SHIFT_LEFT, KEY_DOWN_ARROW}, {/*.*/ MOD_SHIFT_LEFT, KEY_RIGHT_ARROW}, {/*/*/ MOD_SHIFT_LEFT, KEY_END}, {}}
 };
 
 static const uint16_t ccMap[12] = {
@@ -596,21 +596,22 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
                             buf[currentReportByte++] = matrixFN[i][j].keycode;
                         }
                     } else if (KEY_F1 <= keycode && keycode <= KEY_F12) {
-                        if (IsFnShiftLayer() && KEY_F1 <= keycode && keycode <= KEY_F4) {
-                            uint8_t profile = 0;
-                            if (keycode < KEY_F4) {
-                                profile = (keycode - KEY_F1) + 1;
+                        if (IsFnShiftLayer()) {
+                            if (KEY_F1 <= keycode && keycode <= KEY_F4) {
+                                uint8_t profile = 0;
+                                if (keycode < KEY_F4) {
+                                    profile = (keycode - KEY_F1) + 1;
+                                }
+                                if (profile != controller.profile) {
+                                    // Send a break before resetting the hardware
+                                    controller.profile = profile;
+                                    KEYBOARD_EnableLED(true);
+                                    memset(buf, 0, KEYBOARD_REPORT_LEN);
+                                    controller.dualRoleFN = 0;
+                                    return XMIT_NORMAL;
+                                }
                             }
-                            if (profile != controller.profile) {
-                                // Send a break before resetting the hardware
-                                controller.profile = profile;
-                                KEYBOARD_EnableLED(true);
-                                memset(buf, 0, KEYBOARD_REPORT_LEN);
-                                controller.dualRoleFN = 0;
-                                return XMIT_NORMAL;
-                            }
-                        }
-                        if (ccMap[keycode - KEY_F1]) {
+                        } else if (ccMap[keycode - KEY_F1]) {
                             *cc = ccMap[keycode - KEY_F1];
                         } else if (KEYBOARD_IsMake(i, j) && KEYBOARD_GetFnReport(keycode)) {
                             MACRO_Begin(MAX_MACRO_SIZE);
@@ -618,7 +619,7 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
                             return XMIT_IN_ORDER;
                         }
                     } else if (keycode == KEY_ESCAPE) {
-                        if ((mod & MOD_SHIFT)) {
+                        if (IsFnShiftLayer()) {
                             if (!PROFILE_IsUSBMode()) {
                                 HOS_SetEvent(HOS_TYPE_INFO, HOS_EVENT_CLEAR_BONDING_DATA);
                                 buf[0] &= ~MOD_SHIFT;
