@@ -20,7 +20,7 @@
 #include "configuration.h"
 
 #define FIRMWARE_VERSION_MAJOR          2
-#define FIRMWARE_VERSION_MINOR          0
+#define FIRMWARE_VERSION_MINOR          1
 #define FIRMWARE_VERSION_REVISION       0
 
 #define PNP_VID             0x04D8
