@@ -491,7 +491,9 @@ static bool IsFnShiftLayer(void)
 
 int8_t KEYBOARD_Get10KeyKeycode(int row, int col)
 {
-    if (!(controller.leds & LED_NUM_LOCK_BIT)) {
+    // During Bluetooth passkey entry, ignore 10-key mode.
+    // LEDs are used to indicate connection status.
+    if (!(controller.leds & LED_NUM_LOCK_BIT) || HOS_GetIndication() == HOS_BLE_STATE_BONDING) {
         return 0;
     }
     return marixNumLock[row][col];
@@ -881,40 +883,6 @@ bool KEYBOARD_GetConsumerReport(uint8_t* preport)
         return true;
     }
     return false;
-}
-
-bool KEYBOARD_GetPasskey(uint32_t* ppasskey)
-{
-    static uint8_t report[KEYBOARD_REPORT_LEN];
-    static uint8_t reportPrev[KEYBOARD_REPORT_LEN];
-    static uint32_t passkey;
-
-    if (!KEYBOARD_GetReport(report)) {
-        return false;
-    }
-    bool result = false;
-    for (int i = 2; i < 8; ++i) {
-        uint8_t c = report[i];
-        if (!memchr(reportPrev, c, 8)) {
-            if (KEY_1 <= c && c <= KEY_9) {
-                passkey *= 10;
-                passkey += (c - KEY_1) + 1;
-            } else if (c == KEY_0) {
-                passkey *= 10;
-            } else if (c == KEY_ENTER) {
-                // Update passkey
-                *ppasskey = passkey;
-                passkey = 0;
-                result = true;
-            } else if (c == KEY_BACKSPACE) {
-                passkey /= 10;
-            } else if (c == KEY_ESCAPE) {
-                passkey = 0;
-            }
-        }
-    }
-    memmove(reportPrev, report, 8);
-    return result;
 }
 
 uint8_t KEYBOARD_GetBoardRevision(void)

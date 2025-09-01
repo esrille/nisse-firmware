@@ -551,8 +551,6 @@ int8_t KEYBOARD_GetFnReport(uint8_t keycode);
 bool KEYBOARD_GetMacroReport(uint8_t* preport);
 int8_t KEYBOARD_GetKanaReport(uint8_t *buf, size_t bufLen, const uint8_t mod);
 
-bool KEYBOARD_GetPasskey(uint32_t* passkey);
-
 bool KEYBOARD_GetConsumerReport(uint8_t* preport);
 
 uint8_t KEYBOARD_GetBoardRevision(void);
