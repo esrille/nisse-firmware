@@ -491,12 +491,23 @@ static bool IsFnShiftLayer(void)
 
 int8_t KEYBOARD_Get10KeyKeycode(int row, int col)
 {
-    // During Bluetooth passkey entry, ignore 10-key mode.
-    // LEDs are used to indicate connection status.
-    if (!(controller.leds & LED_NUM_LOCK_BIT) || HOS_GetIndication() == HOS_BLE_STATE_BONDING) {
-        return 0;
+    uint8_t keycode = marixNumLock[row][col];
+
+    // During Bluetooth passkey entry, LEDs indicate connection status.
+    if (HOS_GetIndication() == HOS_BLE_STATE_BONDING) {
+        // Accept passkey input via 10-key emulation regardless of Num Lock LED status.
+        if (KEYPAD_1 <= keycode && keycode <= KEYPAD_0) {
+            keycode -= KEYPAD_1;
+            keycode += KEY_1;
+            return keycode;
+        }
+        if (KEYPAD_ENTER == keycode) {
+            return KEY_ENTER;
+        }
+    } else if (controller.leds & LED_NUM_LOCK_BIT) {
+        return keycode;
     }
-    return marixNumLock[row][col];
+    return 0;
 }
 
 int8_t KEYBOARD_GetKeycode(int row, int col)
