@@ -428,7 +428,8 @@ static bool IsShiftSwitch(int row, int column)
     }
 }
 
-bool KEYBOARD_ProcessMatrix(void) {
+bool KEYBOARD_ProcessMatrix(void)
+{
     if (DetectGhost()) {
         return false;
     }
