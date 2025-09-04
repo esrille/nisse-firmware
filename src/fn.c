@@ -62,10 +62,10 @@ static uint8_t const kanaKeys[KANA_MAX + 1][MAX_KANA_KEY_NAME] =
 static uint8_t const delayKeys[DELAY_MAX + 1][MAX_DELAY_KEY_NAME] =
 {
     {KEY_D, KEY_0, KEY_ENTER, 0},
-    {KEY_D, KEY_1, KEY_6, KEY_ENTER, 0},
-    {KEY_D, KEY_3, KEY_2, KEY_ENTER, 0},
+    {KEY_D, KEY_1, KEY_2, KEY_ENTER, 0},
+    {KEY_D, KEY_2, KEY_4, KEY_ENTER, 0},
+    {KEY_D, KEY_3, KEY_6, KEY_ENTER, 0},
     {KEY_D, KEY_4, KEY_8, KEY_ENTER, 0},
-    {KEY_D, KEY_6, KEY_4, KEY_ENTER, 0},
 };
 
 #define MAX_MOD_KEY_NAME    6

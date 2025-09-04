@@ -30,9 +30,9 @@ generatedFileHashHistoryMap:
 - file: ../src/config/default/ATSAMD21G18A.ld
   hash: 1009e40f5a102d31f0c22e83672dc81c3990602006e5d87071c153daa26a52f0
 - file: ../src/config/default/configuration.h
-  hash: a66b68a9bcb4f5aa2cef727f6a26d7b33dfd80f6b82452f477901ee1a1c4a78e
+  hash: 5d763a78b56c6301597f2b8e359fd7d4a520499c0cd365ff439d034a171a6c96
 - file: ../src/config/default/definitions.h
-  hash: 3b33229578e78c18ec410a31b51f1de115fc34ce4d2f41931701f7a07b459dc4
+  hash: 34f1ec91b1b8a9ce535507050110fcd77d0e211b6de6b5c7c2eeb65f96b63352
 - file: ../src/config/default/device.h
   hash: 21c8226b5e9ad2f49c848158578c223cd11bd7f3bdb8e721824b13e9ee4b9217
 - file: ../src/config/default/device_cache.h
@@ -110,7 +110,7 @@ generatedFileHashHistoryMap:
 - file: ../src/config/default/peripheral/sercom/usart/plib_sercom_usart_common.h
   hash: 63a2880c5ef04400603492b0838d2456c7088e6c63b7081cea6ac471f0a90954
 - file: ../src/config/default/peripheral/tc/plib_tc3.c
-  hash: 2470f565f8a4dabce4f39c66b358736426086c5fceda010ff3ec132fb55d4ce9
+  hash: df7777fcd45a43e12160afc91a0985b43f482d1718bb2b16b5b8118ad8eec705
 - file: ../src/config/default/peripheral/tc/plib_tc3.h
   hash: a2a52cdd5003fe2834564b59774d4910243eb2159879675285ef9f26e7fb9969
 - file: ../src/config/default/peripheral/tc/plib_tc_common.h
