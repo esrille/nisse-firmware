@@ -387,7 +387,7 @@ void APP_Initialize ( void )
 
     /* Initialize and start the tick timer */
     appData.tick = 0;
-    appData.tickTimer = SYS_TIME_TimerCreate(0, SYS_TIME_MSToCount(16), TickCallback, (uintptr_t) NULL, SYS_TIME_PERIODIC);
+    appData.tickTimer = SYS_TIME_TimerCreate(0, SYS_TIME_MSToCount(12), TickCallback, (uintptr_t) NULL, SYS_TIME_PERIODIC);
     SYS_TIME_TimerStart(appData.tickTimer);
 }
 
