@@ -238,7 +238,11 @@ static void DoAbout(void) {
         }
 
         MACRO_Puts(aboutKVM);
-        MACRO_PutNumber(PROFILE_GetCurrent());
+        uint8_t profile = PROFILE_GetCurrent();
+        if (profile == 0) {
+            profile = 4;
+        }
+        MACRO_PutNumber(profile);
         MACRO_Put(KEY_ENTER);
 
         // Battery
