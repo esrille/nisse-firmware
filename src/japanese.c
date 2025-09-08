@@ -483,8 +483,11 @@ static int8_t ProcessKana(uint8_t *buf, size_t bufLen,
 
     // If no Kana keys were pressed, return the normal keyboard state.
     if (currentKana == 0) {
-        if (2 < currentAscii || buf[0]) {
-            memset(last, 0, 3);
+        if (2 < currentAscii) {
+            memset(last, 0, sizeof last);
+            return XMIT_NORMAL;
+        }
+        if (buf[0]) {
             return XMIT_NORMAL;
         }
         return XMIT_NONE;
