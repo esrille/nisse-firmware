@@ -194,7 +194,7 @@ static const uint16_t ccMap[12] = {
 };
 
 /* modifiers configurations */
-static uint8_t const modMap[4][12] =
+static uint8_t const modMap[4][MATRIX_ROWS] =
 {
     // 0: -
     // 1: -
@@ -583,12 +583,13 @@ static uint8_t GetModifiers(void)
 
 static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
     size_t currentReportByte = 2;
-    const uint8_t (*matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
     uint8_t mod = GetModifiers();
 
     memset(buf, 0, bufLen);
     *cc = 0;
     if (IsFnLayer()) {
+        const uint8_t (*matrix)[MATRIX_COLS] = matrixes[PROFILE_Read(EEPROM_BASE)];
+        uint8_t layout = PROFILE_Read(EEPROM_MOD);
 
         // dual role FN keys
         if (KEYBOARD_IsMake(4, 0)) {
@@ -601,13 +602,16 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         for (int i = 0; i < MATRIX_ROWS; i++) {
             for (int j = 0; j < MATRIX_COLS; j++) {
                 if (KEYBOARD_IsPressed(i, j)) {
-                    uint8_t keycode = matrix[i][j];
-                    if (!keycode)
+                    uint8_t row = (j == 0 || j == MATRIX_COLS - 1) ? modMap[layout % 4][i] : i;
+                    uint8_t keycode = matrix[row][j];
+
+                    if (!keycode) {
                         continue;
-                    if (matrixFN[i][j].keycode) {
-                        buf[0] |= matrixFN[i][j].modifiers;
+                    }
+                    if (matrixFN[row][j].keycode) {
+                        buf[0] |= matrixFN[row][j].modifiers;
                         if (currentReportByte < bufLen) {
-                            buf[currentReportByte++] = matrixFN[i][j].keycode;
+                            buf[currentReportByte++] = matrixFN[row][j].keycode;
                         }
                     } else if (KEY_F1 <= keycode && keycode <= KEY_F12) {
                         if (IsFnShiftLayer()) {
