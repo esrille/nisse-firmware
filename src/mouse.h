@@ -34,5 +34,6 @@ typedef struct
 } MOUSE_REPORT;
 
 bool MOUSE_GetReport(uint8_t* preport);
+void MOUSE_About(void);
 
 #endif  // ESRILLE_MOUSE_H

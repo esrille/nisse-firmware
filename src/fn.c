@@ -173,10 +173,6 @@ static const uint8_t aboutF9[] = {
     KEY_F, KEY_9, KEY_SPACE, 0
 };
 
-static const uint8_t aboutTSAP[] = {
-    KEY_T, KEY_S, KEY_A, KEY_P, KEY_SPACE, 0
-};
-
 static const uint8_t aboutBLE[] = {
     KEY_B, KEY_L, KEY_E, KEY_SPACE, KEY_M, KEY_O, KEY_D, KEY_U, KEY_L, KEY_E,
     KEY_ENTER, 0
@@ -301,9 +297,7 @@ static void DoAbout(void) {
     MACRO_Puts(prefixKeys[PROFILE_Read(EEPROM_PREFIX)]);
 
     if (APP_HasMouseInterface()) {
-        MACRO_Puts(aboutTSAP);
-        MACRO_PutNumber(1 + PROFILE_Read(EEPROM_MOUSE));
-        MACRO_Put(KEY_ENTER);
+        MOUSE_About();
     }
 }
 

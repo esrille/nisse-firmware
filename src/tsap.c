@@ -16,11 +16,12 @@
 
 #include "app.h"
 
-#define XY_DEAD_ZONE    24
-#define XY_RANGE        (128 - XY_DEAD_ZONE)
-#define TOUCH_DELAY     12      // a very short touch should be ignored.
-#define TOUCH_THRESH    1000
-#define TOUCH_MAX       4095
+#define XY_DEAD_ZONE        24
+#define XY_RANGE            (128 - XY_DEAD_ZONE)
+#define TOUCH_DELAY         12      // a very short touch should be ignored.
+#define TOUCH_THRESH        1000
+#define TOUCH_MAX           4095
+#define TOUCH_RAMP_LIMIT    100
 
 typedef struct {
     uint8_t x;
@@ -43,8 +44,8 @@ typedef struct {
     uint16_t current;
     uint16_t thresh;
     uint16_t high;
+    uint16_t max;
     uint8_t  delay;
-    uint8_t  spurious;
 } TOUCH_SENSOR;
 
 typedef struct {
@@ -59,6 +60,10 @@ typedef struct {
     uint8_t         mousePrev[MOUSE_REPORT_LEN];
     int8_t          wheel;
 } TSAP_CONTROL;
+
+static const uint8_t aboutTSAP[] = {
+    KEY_P, KEY_A, KEY_D, KEY_SPACE, 0
+};
 
 static TSAP_CONTROL controller;
 
@@ -95,8 +100,19 @@ static void ProcessSerialData(void)
     uint16_t touch = controller.rawData.touch;
 
     if (touch < TOUCH_THRESH) { // too weak
-        touch = TOUCH_MAX;
+        touch = TOUCH_THRESH;
     }
+
+    // Limit max increase to TOUCH_RAMP_LIMIT to avoid sudden jumps from noise or glitches.
+    if (controller.touchSensor.max < touch) {
+        uint16_t limit = controller.touchSensor.max + TOUCH_RAMP_LIMIT;
+
+        if (limit < touch) {
+            touch = limit;
+        }
+        controller.touchSensor.max = touch;
+    }
+
     controller.touchSensor.current = LowPassFilter(controller.touchSensor.current, touch);
     if (controller.touchSensor.high < controller.touchSensor.current) {
         controller.touchSensor.high = controller.touchSensor.current;
@@ -107,9 +123,6 @@ static void ProcessSerialData(void)
             ++controller.touchSensor.delay;
         }
     } else {
-        if (0 < controller.touchSensor.delay && controller.touchSensor.delay < TOUCH_DELAY) {
-            ++controller.touchSensor.spurious;
-        }
         if ((GetDistance(controller.rawData.x, 128u) < XY_DEAD_ZONE &&
                 GetDistance(controller.rawData.y, 128u) < XY_DEAD_ZONE) ||
                 (controller.center.x == 0 && controller.center.y == 0)) {
@@ -118,6 +131,10 @@ static void ProcessSerialData(void)
                 controller.center.y = controller.rawData.y;
                 if (controller.touchSensor.delay == TOUCH_DELAY) { // previously touched?
                     controller.touchSensor.high = (controller.touchSensor.high * 8) / 9;
+                    if (controller.touchSensor.high < controller.touchSensor.current) {
+                        controller.touchSensor.high = controller.touchSensor.current;
+                    }
+                    controller.touchSensor.thresh = (controller.touchSensor.high * 5) / 7;
                 }
             }
         }
@@ -293,4 +310,24 @@ bool MOUSE_GetReport(uint8_t* preport)
         return true;
     }
     return false;
+}
+
+void MOUSE_About(void)
+{
+    MACRO_Puts(aboutTSAP);
+    MACRO_PutNumber(1 + PROFILE_Read(EEPROM_MOUSE));
+
+    MACRO_Put(KEY_SPACE);
+    MACRO_PutNumber(controller.touchSensor.current);
+    MACRO_Put(KEY_SLASH);
+    MACRO_PutNumber(controller.touchSensor.thresh);
+    MACRO_Put(KEY_SLASH);
+    MACRO_PutNumber(controller.touchSensor.high);
+    MACRO_Put(KEY_SLASH);
+    MACRO_PutNumber(controller.touchSensor.max);
+    MACRO_Put(KEY_SPACE);
+    MACRO_PutNumber(controller.rawPrev.x);
+    MACRO_Put(KEY_COMMA);
+    MACRO_PutNumber(controller.rawPrev.y);
+    MACRO_Put(KEY_ENTER);
 }
