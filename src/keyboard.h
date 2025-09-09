@@ -283,6 +283,8 @@ typedef struct
 #define MOD_GUI_RIGHT           (1u << (KEY_RIGHT_GUI - KEY_LEFT_CONTROL))
 #define MOD_GUI                 (MOD_GUI_LEFT | MOD_GUI_RIGHT)
 
+#define MOD_EXT_CAPS_LCOK       0x0100
+
 //
 // LED
 //

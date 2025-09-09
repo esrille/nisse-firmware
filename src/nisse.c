@@ -560,9 +560,9 @@ int8_t KEYBOARD_GetKeycode(int row, int col)
     return keycode;
 }
 
-static uint8_t GetModifiers(void)
+static uint16_t GetModifiers(void)
 {
-    uint8_t mod = 0;
+    uint16_t mod = 0;
 
     for (int row = 0; row < MATRIX_ROWS; ++row) {
         for (int col = 0; col < MATRIX_COLS; col += MATRIX_COLS - 1) {
@@ -574,6 +574,8 @@ static uint8_t GetModifiers(void)
                     if ((bit & MOD_SHIFT) && KEYBOARD_IsMake(row, col)) {
                         controller.prefix ^= bit;
                     }
+                } else if (keycode == KEY_CAPS_LOCK) {
+                    mod |= MOD_EXT_CAPS_LCOK;
                 }
             }
         }
@@ -583,7 +585,7 @@ static uint8_t GetModifiers(void)
 
 static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
     size_t currentReportByte = 2;
-    uint8_t mod = GetModifiers();
+    uint16_t mod = GetModifiers();
 
     memset(buf, 0, bufLen);
     *cc = 0;
@@ -661,7 +663,10 @@ static int8_t GetReport(uint8_t *buf, size_t bufLen, uint16_t *cc) {
         return XMIT_NORMAL;
     }
 
-    if (!controller.kana || (mod & (MOD_CONTROL | MOD_ALT | MOD_GUI)) || PROFILE_Read(EEPROM_KANA) == KANA_ROMAJI) {
+    if (!controller.kana ||
+        (mod & (MOD_CONTROL | MOD_ALT | MOD_GUI | MOD_EXT_CAPS_LCOK)) ||
+        PROFILE_Read(EEPROM_KANA) == KANA_ROMAJI)
+    {
         // Normal layer
         for (int row = 0; row < MATRIX_ROWS; ++row) {
             for (int col = 0; col < MATRIX_COLS; ++col) {
