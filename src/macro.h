@@ -20,7 +20,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MAX_MACRO_SIZE  512
+#define MAX_MACRO_SIZE  1024
 
 void MACRO_Begin(size_t max);
 uint8_t MACRO_Peek(void);

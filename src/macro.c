@@ -62,10 +62,8 @@ void MACRO_Put(uint8_t c)
 
 void MACRO_Puts(const uint8_t* s)
 {
-    uint8_t i = 0;
-
-    for (uint8_t c = s[i]; c; c = s[++i]) {
-        MACRO_Put(c);
+    while (*s) {
+        MACRO_Put(*s++);
     }
 }
 
