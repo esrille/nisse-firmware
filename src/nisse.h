@@ -17,8 +17,6 @@
 #ifndef ESRILLE_NISSE_H
 #define ESRILLE_NISSE_H
 
-#include "configuration.h"
-
 #define FIRMWARE_VERSION_MAJOR          2
 #define FIRMWARE_VERSION_MINOR          1
 #define FIRMWARE_VERSION_REVISION       2

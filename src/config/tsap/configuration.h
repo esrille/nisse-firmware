@@ -116,7 +116,7 @@ extern "C" {
 
 
 /* Maximum instances of HID function driver */
-#define USB_DEVICE_HID_INSTANCES_NUMBER     3
+#define USB_DEVICE_HID_INSTANCES_NUMBER                     3
 
 /* HID Transfer Queue Size for both read and
    write. Applicable to all instances of the
@@ -148,7 +148,6 @@ extern "C" {
 // Section: Application Configuration
 // *****************************************************************************
 // *****************************************************************************
-
 
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus

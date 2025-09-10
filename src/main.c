@@ -22,7 +22,6 @@ int main(void)
     SYS_Initialize1(NULL);
 
     KEYBOARD_Initialize();
-    TSAP_Initialize1();
 
     if (!USB_MODE_Get()) {
         if (HOS_CheckModule()) {
@@ -35,7 +34,6 @@ int main(void)
 
     // Initialize USB modules
     SYS_Initialize2(NULL);
-    TSAP_Initialize2();
 
     // Activate the USB HID connection
     uint16_t tick = APP_GetTick();

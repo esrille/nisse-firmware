@@ -296,9 +296,9 @@ static void DoAbout(void) {
     MACRO_Puts(aboutF9);
     MACRO_Puts(prefixKeys[PROFILE_Read(EEPROM_PREFIX)]);
 
-    if (APP_HasMouseInterface()) {
-        MOUSE_About();
-    }
+#if APP_HAS_MOUSE_INTERFACE
+    MOUSE_About();
+#endif
 }
 
 static uint8_t IncrementProfileSetting(uint8_t offset, uint8_t max) {

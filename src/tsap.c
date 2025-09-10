@@ -256,6 +256,8 @@ void TSAP_Initialize1(void)
 
 void TSAP_Initialize2(void)
 {
+    // SERCOM4 is used to monitor TSAP in the USB mode
+    SERCOM4_USART_Initialize();
     SERCOM4_USART_ReadCallbackRegister(TSAP_ReadCallback, (uintptr_t) NULL);
     SERCOM4_USART_Read(receiveBuffer, sizeof receiveBuffer);
 }

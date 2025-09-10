@@ -64,9 +64,18 @@
 #include "configuration.h"
 #include "definitions.h"
 
+#define HID_INDEX_KEYBOARD          USB_DEVICE_HID_INDEX_0
+#define HID_INDEX_CONSUMER          USB_DEVICE_HID_INDEX_1
+#define HID_INDEX_MOUSE             USB_DEVICE_HID_INDEX_2
+#define HID_INDEX_COUNT             USB_DEVICE_HID_INSTANCES_NUMBER
+
+/* Defines minimum suspend duration before which Remote Wakeup cannot occur */
+#define USB_SUSPEND_DURATION_5MS    5
+
+#define APP_HAS_MOUSE_INTERFACE     (HID_INDEX_MOUSE < USB_DEVICE_HID_INSTANCES_NUMBER)
+
 #include "keyboard.h"
 #include "mouse.h"
-
 #include "nisse.h"
 
 #include "eeprom.h"
@@ -94,14 +103,6 @@ extern "C" {
 // Section: Type Definitions
 // *****************************************************************************
 // *****************************************************************************
-
-#define HID_INDEX_KEYBOARD  USB_DEVICE_HID_INDEX_0
-#define HID_INDEX_CONSUMER  USB_DEVICE_HID_INDEX_1
-#define HID_INDEX_MOUSE     USB_DEVICE_HID_INDEX_2
-#define HID_INDEX_COUNT     USB_DEVICE_HID_INSTANCES_NUMBER
-
-/* Defines minimum suspend duration before which Remote Wakeup cannot occur */
-#define USB_SUSPEND_DURATION_5MS        5
 
 // *****************************************************************************
 /* Application states
@@ -440,31 +441,6 @@ void APP_WakeUp(void);
     that the application behaves correctly when in low-power modes.
  */
 bool APP_Suspended(void);
-
-/******************************************************************************
-  Function:
-    bool APP_HasMouseInterface(void)
-
-  Description:
-    This function checks whether a mouse device is combined with the keyboard.
-
-   Parameters:
-    None.
-
-  Returns:
-    - true: if a mouse device is combined with the keyboard.
-    - false: otherwise.
-
-  Example:
-    <code>
-    bool hasMouse = APP_HasMouseInterface();
-    </code>
- */
-
-static inline bool APP_HasMouseInterface(void)
-{
-    return (HID_INDEX_MOUSE < USB_DEVICE_HID_INSTANCES_NUMBER);
-}
 
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus

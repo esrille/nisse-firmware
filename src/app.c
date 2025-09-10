@@ -102,7 +102,9 @@ KEYBOARD_OUTPUT_REPORT __attribute__((aligned(16))) keyboardOutputReport USB_ALI
 
 CONSUMER_REPORT __attribute__((aligned(16))) consumerReport USB_ALIGN;
 
+#if APP_HAS_MOUSE_INTERFACE
 MOUSE_REPORT __attribute__((aligned(16))) mouseReport USB_ALIGN;
+#endif
 
 // *****************************************************************************
 // *****************************************************************************
@@ -535,15 +537,15 @@ void APP_Tasks ( void )
                 }
             }
 
-            if (APP_HasMouseInterface())
-                appData.state = APP_STATE_EMULATE_MOUSE;
-            else
-                appData.state = APP_STATE_CHECK_IF_CONFIGURED;
-
+#if APP_HAS_MOUSE_INTERFACE
+            appData.state = APP_STATE_EMULATE_MOUSE;
+#else
+            appData.state = APP_STATE_CHECK_IF_CONFIGURED;
+#endif
             break;
 
+#if APP_HAS_MOUSE_INTERFACE
         case APP_STATE_EMULATE_MOUSE:
-
             instance = &appData.hidObjects[HID_INDEX_MOUSE];
             if(instance->isReportSentComplete && instance->idleTimer == 0)
             {
@@ -559,6 +561,7 @@ void APP_Tasks ( void )
             }
             appData.state = APP_STATE_CHECK_IF_CONFIGURED;
             break;
+#endif
 
         case APP_STATE_USB_SUSPENDED:
 

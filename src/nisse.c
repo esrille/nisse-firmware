@@ -311,9 +311,11 @@ void KEYBOARD_UpdateLEDs(void)
         default:
             break;
         }
+#if APP_HAS_MOUSE_INTERFACE
         if (TSAP_IsTouched()) {
             bits |= LED_SCROLL_LOCK_BIT;
         }
+#endif
         if (controller.kana && controller.prefix && PROFILE_Read(EEPROM_PREFIX) == PREFIXSHIFT_LED) {
             bits |= LED_SCROLL_LOCK_BIT;
         }
@@ -779,6 +781,10 @@ void KEYBOARD_Initialize(void)
 
     LED_Initialize();
     HOS_Initialize();
+
+#if APP_HAS_MOUSE_INTERFACE
+    TSAP_Initialize1();
+#endif
 }
 
 bool KEYBOARD_Task(void)
@@ -795,9 +801,11 @@ bool KEYBOARD_Task(void)
             return false;
         }
         controller.xmit = GetReport(controller.report, KEYBOARD_REPORT_LEN, &controller.cc);
+#if APP_HAS_MOUSE_INTERFACE
         if (controller.xmit == XMIT_NORMAL && TSAP_IsTouched()) {
             memset(controller.report + 2, 0, KEYBOARD_REPORT_LEN - 2);
         }
+#endif
     }
     return true;
 }

@@ -43,10 +43,7 @@
 // Section: Included Files
 // *****************************************************************************
 // *****************************************************************************
-#include "configuration.h"
-#include "definitions.h"
-#include "device.h"
-
+#include "app.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -296,8 +293,9 @@ void SYS_Initialize1 ( void* data )
 
 void SYS_Initialize2 ( void* data )
 {
-    // SERCOM4 is used to monitor TSAP in the USB mode
-    SERCOM4_USART_Initialize();
+#if APP_HAS_MOUSE_INTERFACE
+    TSAP_Initialize2();
+#endif
 
     // Initialize USB modules
     sysObj.usbDevObject0 = USB_DEVICE_Initialize (USB_DEVICE_INDEX_0 , ( SYS_MODULE_INIT* ) & usbDevInitData);

@@ -26,7 +26,7 @@
 
 #include "app.h"
 
-#define HOS_TYPE_DEFAULT    (APP_HasMouseInterface() ? HOS_TYPE_TSAP : HOS_TYPE_INFO)
+#define HOS_TYPE_DEFAULT    (APP_HAS_MOUSE_INTERFACE ? HOS_TYPE_TSAP : HOS_TYPE_INFO)
 #define WDT_FREQ            60u
 
 // BSP indication states
@@ -371,7 +371,9 @@ void HOS_MainLoop(void)
     static int8_t starting = 1;
     static uint8_t keyboardReport[KEYBOARD_REPORT_LEN];
     static uint16_t ccReport;
+#if APP_HAS_MOUSE_INTERFACE
     static uint8_t mouseReport[MOUSE_REPORT_LEN];
+#endif
 
     bool hasReport;
     bool hasConsumer;
@@ -506,13 +508,13 @@ void HOS_MainLoop(void)
                     }
                     HOS_Report(HOS_TYPE_DEFAULT, HOS_CMD_KEYBOARD_REPORT, 8, keyboardReport);
                 }
-                if (APP_HasMouseInterface()) {
-                    TSAP_Task(HOS_GetKeyboardMouseX(), HOS_GetKeyboardMouseY(), HOS_GetTouch());
-                    // Do not report unchanged state.
-                    if (MOUSE_GetReport(mouseReport)) {
-                        HOS_Report(HOS_TYPE_DEFAULT, HOS_CMD_MOUSE_REPORT, sizeof mouseReport, mouseReport);
-                    }
+#if APP_HAS_MOUSE_INTERFACE
+                TSAP_Task(HOS_GetKeyboardMouseX(), HOS_GetKeyboardMouseY(), HOS_GetTouch());
+                // Do not report unchanged state.
+                if (MOUSE_GetReport(mouseReport)) {
+                    HOS_Report(HOS_TYPE_DEFAULT, HOS_CMD_MOUSE_REPORT, sizeof mouseReport, mouseReport);
                 }
+#endif
                 KEYBOARD_SetLEDs(HOS_GetLED());
                 UpdateBatteryLevel(tick);
                 break;

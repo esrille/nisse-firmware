@@ -116,7 +116,7 @@ extern "C" {
 
 
 /* Maximum instances of HID function driver */
-#define USB_DEVICE_HID_INSTANCES_NUMBER     2 
+#define USB_DEVICE_HID_INSTANCES_NUMBER                     2
 
 /* HID Transfer Queue Size for both read and
    write. Applicable to all instances of the
@@ -131,14 +131,14 @@ extern "C" {
 
 /* Enables Device Support */
 #define DRV_USBFSV1_DEVICE_SUPPORT                          true
-    
+
 /* Disable Host Support */
 #define DRV_USBFSV1_HOST_SUPPORT                            false
 
 /* Enable usage of Dual Bank */
 #define DRV_USBFSV1_DUAL_BANK_ENABLE                        false
 
-/* Alignment for buffers that are submitted to USB Driver*/ 
+/* Alignment for buffers that are submitted to USB Driver*/
 #define USB_ALIGN  __ALIGNED(CACHE_LINE_SIZE)
 
 
