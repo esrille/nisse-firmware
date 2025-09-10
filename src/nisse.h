@@ -19,7 +19,7 @@
 
 #define FIRMWARE_VERSION_MAJOR          2
 #define FIRMWARE_VERSION_MINOR          1
-#define FIRMWARE_VERSION_REVISION       2
+#define FIRMWARE_VERSION_REVISION       3
 
 #define PNP_VID             0x04D8
 #define PNP_PID             0xF550      // Esrille New Keyboard
