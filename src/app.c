@@ -239,7 +239,6 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event,
 
             KEYBOARD_EnableLED(false);
             KEYBOARD_SetLEDs(0);
-
             break;
 
         case USB_DEVICE_EVENT_CONFIGURED:
@@ -251,6 +250,9 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event,
             {
                 appData.isConfigured = true;
 
+#if APP_HAS_MOUSE_INTERFACE
+                TSAP_Reset();
+#endif
                 KEYBOARD_SetLEDs(0);
                 KEYBOARD_EnableLED(true);
 
@@ -271,6 +273,9 @@ void APP_USBDeviceEventHandler(USB_DEVICE_EVENT event,
         case USB_DEVICE_EVENT_RESUMED:
             if(appData.isConfigured == true)
             {
+#if APP_HAS_MOUSE_INTERFACE
+                TSAP_Reset();
+#endif
                 KEYBOARD_EnableLED(true);
             }
             /* Device is resumed. */

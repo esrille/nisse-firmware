@@ -249,6 +249,14 @@ void TSAP_ReadCallback(uintptr_t context)
     SERCOM4_USART_Read(receiveBuffer, sizeof receiveBuffer);
 }
 
+void TSAP_Reset(void)
+{
+    bool interruptStatus = NVIC_INT_Disable();
+    memset(&controller, 0, sizeof controller);
+    LoadResolution();
+    NVIC_INT_Restore(interruptStatus);
+}
+
 void TSAP_Initialize1(void)
 {
     LoadResolution();

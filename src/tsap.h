@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void TSAP_Reset(void);
 void TSAP_Initialize1(void);
 void TSAP_Initialize2(void);    // for USB mode
 void TSAP_Task(uint8_t x, uint8_t y, uint16_t touch);
